@@ -14,12 +14,7 @@ import java.util.Map;
 
 public class MyReader {
 
-
-
-
     public MyReader(String dir, String fileName, AnalysisRepository analysisRepository) {
-
-
         Path path = Paths.get(dir);
         FileSystem fileSystem = FileSystems.getDefault();
         WatchService watchService = null;
@@ -31,50 +26,46 @@ public class MyReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //if (watchService!=null) {
-            while (true) {
-                WatchKey watchKey = null;
-                try {
-                    watchKey = watchService.take();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
-                for (WatchEvent<?> we : watchEvents) {
-                    if (we.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                        System.out.println("Created: " + we.context());
-                        String fileNameFormSystem = we.context().toString().trim();
-                        if (fileNameFormSystem.equals(fileName)) {
 
-                            //System.out.println("1");
-                            String content = null;
-                            try {
-                                content = new String(Files.readAllBytes(Paths.get(dir + fileName)));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
-                            if (writeDataToDb(content, analysisRepository)){
-                                System.out.println("Данные записаны");
-                            }else{
-                                System.out.println("Данные не записаны");
-                            }
-
-
-                            break;
-
+        while (true) {
+            WatchKey watchKey = null;
+            try {
+                watchKey = watchService.take();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            List<WatchEvent<?>> watchEvents = watchKey.pollEvents();
+            for (WatchEvent<?> we : watchEvents) {
+                if (we.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                    System.out.println("Created: " + we.context());
+                    String fileNameFormSystem = we.context().toString().trim();
+                    if (fileNameFormSystem.equals(fileName)) {
+                        String content = null;
+                        try {
+                            content = new String(Files.readAllBytes(Paths.get(dir + fileName)));
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } else if (we.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
-                        System.out.println("Deleted: " + we.context());
-                    } else if (we.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                        System.out.println("Modified :" + we.context());
+
+                        if (writeDataToDb(content, analysisRepository)){
+                            System.out.println("Данные записаны");
+                        }else{
+                            System.out.println("Данные не записаны");
+                        }
+
+                        break;
+
                     }
-                }
-                if (!watchKey.reset()) {
-                    break;
+                } else if (we.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
+                    System.out.println("Deleted: " + we.context());
+                } else if (we.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+                    System.out.println("Modified :" + we.context());
                 }
             }
-        //}
+            if (!watchKey.reset()) {
+                break;
+            }
+        }
     }
 
     private boolean writeDataToDb(String content, AnalysisRepository analysisRepository) {

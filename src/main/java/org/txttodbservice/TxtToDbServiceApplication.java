@@ -17,7 +17,6 @@ public class TxtToDbServiceApplication {
 		SpringApplication.run(TxtToDbServiceApplication.class, args);
 	}
 
-
 	@Component
 	public class MyRunner implements CommandLineRunner {
 
